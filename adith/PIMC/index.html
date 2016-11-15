@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Path-Integral Monte Carlo C++ Code</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Path-Integral Monte Carlo</h1>
+      <h2 class="project-tagline">A C++ code that implements traditional- and worm-algorithm PIMC to study Helium-4, and one- and two-component Coulomb systems</h2>
+      <a href="https://github.com/aramamurti/PIMC" class="btn">View on GitHub</a>
+      <a href="https://github.com/aramamurti/PIMC/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/aramamurti/PIMC/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h3>
+<a id="introduction" class="anchor" href="#welcome-to-github-pages" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Introduction</h3>
+
+<p>This code implements the PIMC algorithm detailed by <a href="http://journals.aps.org/rmp/abstract/10.1103/RevModPhys.67.279"> D. Ceperley (1995) </a> and <a href="http://journals.aps.org/pre/abstract/10.1103/PhysRevE.74.036701">Boninsegni, et al. (2006)</a>. See these papers for an overview (and the details) of the algorithm.</p>
+
+<h3>
+<a id="compiling-and-running" class="anchor" href="#designer-templates" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Compiling and Running</h3>
+
+<p>It has dependencies on <a href="http://www.boost.org">boost</a>, <a href="https://www.gnu.org/software/gsl/">GNU Scientific Library (GSL)</a>, <a href="https://www.open-mpi.org">Open-MPI</a>, and <a href="https://www.openmp.org"> OpenMP</a>. I suggest using the most recent <a href="https://gcc.gnu.org">GNU C++ compiler</a> for best results, but any compiler that supports the C++14 standard will work. The makefile included in the git repository will compile and link the files into an executable called <code>PIMC</code>.</p>
+
+<p>
+The working directory must have two folders: <code>input/</code> and <code>output/</code>. The <code>input</code> folder must have at least one parameters file, named as <code>parameters_#.cfg</code>, where <code>#</code> is an integer (starting at zero). Here is a sample configuration file:
+</p>
+
+<pre><code>
+[Simulation Parameters]<br />
+particles                              =           32<br />
+periodic_boundary_conditions           =           true<br />
+grand_canonical_ensemble               =           false<br />
+particle_type                          =           he4<br />
+temperature                            =           1.6<br />
+mu                                     =           0<br />
+NN_grid_size                           =           1<br />
+C0                                     =           1<br />
+end_step                               =           10000<br />
+equilibration                          =           10000<br />
+time_slices                            =           32<br />
+coupling                               =           1<br />
+dimensions                             =           3<br />
+kb                                     =           1.0<br />
+</code></pre>
+
+<p>
+The types of particles are distinguishable and indistinguishable particles in a harmonic trap (<code>boltzmannon_harmonic</code>, <code>boson_harmonic</code>), helium-4 (<code>he4</code>), and one- and two-component Coulomb systems (<code>boson_coulomb</code>, <code>monopole_liquid</code>, both with mass=1). <code>grand_canonical_ensemble</code> chooses whether to keep particle number fixed (traditional PIMC) or variable (worm-algorithm PIMC). The latter algorithm requires two initial parameters: <code>C0</code>, the worm constant, and <code>mu</code>, the chemical potential; any input for these parameters is ignored in the traditional PIMC algorithm. <code>NN_grid_size</code> dictates the size of each cell in the nearest-neighbor table. The <code>coupling</code> parameter only applies in the case of a Coulomb interaction, and is applied as an overall constant in the potential. The rest of the inputs are straightforward.</p>
+
+<p>
+To run the program: <code>mpirun -n nprocs /path/to/executable start_id processors_per</code>,<br />
+where <code>nprocs</code> is total number of processes started by MPI, <code>start_id</code> is the <code>#</code> of the (first) <code>parameters_#.cfg</code> file, and <code>processors_per</code> is the number of processors dedicated to each parameters file. For example, <code>mpirun -n 4 ./PIMC 1 2</code> will start four processes, two of which will be used for <code>parameters_1.cfg</code> and two for <code>parameters_2.cfg</code>. If no arguments are given, <code>start_id</code> is assumed to be zero and all processors are dedicated to the one PIMC run. If one argument is given, that argument is for <code>start_id</code> and once again all processors are dedicated to that one task. It is important that the number of time slices in a run be divisible by the number of processors allotted to the run. Oftentimes, without a tremendously large computer, one should set the number of openMP threads to 1 with (in bash) <code>export OMP_NUM_THREADS=1</code> and use all processors/threads in MPI. <br /><br /> **One argument is the common usage.**
+</p>
+
+<p>
+There are two checker flags, which check the separation and neighbor tables, as well as the charges of permuted particles, for consistency and accuracy. These two flags <code>check1</code> and <code>check2</code> are found in the <code>equilibrate</code> method of <code>runner.cpp</code>, and can be turned on prior to compilation if one desires to check the algorithm for data-structure level mistakes.
+</p>
+
+<h3>
+<a id="output" class="anchor" href="#designer-templates" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Output</h3>
+
+<p> The program will output a parameters file and an overview file containing move acceptances. There are three data files containing the energy, winding, and permutation data at all steps in which the configuration is diagonal (no open paths). The program will also output the specific path data (found in the path_dump, connections, and charges files) every 50 diagonal steps (this can be changed in the code in the <code>run</code> method of <code>runner.cpp</code>.</p>
+
+<h3>
+<a id="support-or-contact" class="anchor" href="#support-or-contact" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Support or Contact</h3>
+
+<p>If you have trouble running this code, or have corrections or suggestions for improvement, please contact me at adith.ramamurti [at] stonybrook.edu and I’ll get back to you as soon as I can. Any input is welcome!</p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/aramamurti/PIMC">PIMC</a> is maintained by <a href="http://www.ramamurti.com/adith/">A. Ramamurti</a>.</span>
+
+        <span class="site-footer-credits">This page uses the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
