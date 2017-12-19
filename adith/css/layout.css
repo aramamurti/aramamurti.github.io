@@ -230,6 +230,51 @@ ul#nav li.current a { color: #F06000; }
    font-size: 20px;
 }
 
+#publications {
+   background: #fff;
+   padding-top: 90px;
+   padding-bottom: 30px;
+   overflow: hidden;
+}
+
+#publications a, #publications a:visited  { color: #DC3522; }
+#publications a:hover, #publications a:focus { color: #313131; }
+
+#publications h1 {
+   font: 18px/24px 'opensans-bold', sans-serif;
+   text-transform: uppercase;
+   letter-spacing: 1px;
+}
+#publications h1 span {
+   border-bottom: 3px solid #DC3522;
+   padding-bottom: 6px;
+}
+#publications h3 {
+   font: 25px/30px 'opensans-bold', sans-serif;
+}
+
+#publications .header-col { padding-top: 9px; }
+#publications .main-col { padding-right: 10%; }
+
+.education, .work {
+   margin-bottom: 48px;
+   padding-bottom: 24px;
+   border-bottom: 1px solid #E8E8E8;
+}
+#publications .info {
+   font: 16px/24px 'librebaskerville-italic', serif;
+   color: #6E7881;
+   margin-bottom: 18px;
+   margin-top: 9px;
+}
+#publications .info span {
+   margin-right: 5px;
+   margin-left: 5px;
+}
+#publications .date {
+   font: 15px/24px 'opensans-regular', sans-serif;
+   margin-top: 6px;
+}
 
 /* ------------------------------------------------------------------ */
 /* d. Resume Section
@@ -237,7 +282,7 @@ ul#nav li.current a { color: #F06000; }
 
 #resume {
    background: #fff;
-   padding-top: 90px;
+   padding-top: 30px;
    padding-bottom: 72px;
    overflow: hidden;
 }
