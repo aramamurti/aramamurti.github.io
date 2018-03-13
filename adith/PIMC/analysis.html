@@ -175,7 +175,7 @@ ml_analysis.optimize_model_regress(data,tc_free)
 </code></pre>
 </p><p>
 
-We can then make the models. The first is the classifier model (for above/below Tc) and the second attempts to predict the value T/Tc.
+We can then make the models. The first is the classifier model (for above/below Tc) and the second attempts to predict the value T/Tc. This is implemented with SVM models, which can be cross validated to MAE ~.001 for the classifier and ~.04 for the regressor, but you can change this for another model in the <code>ml_analysis.py</code> file if you choose.
 </p><p>
 
 <pre><code>models = ml_analysis.make_model(data,tc_free)
@@ -197,7 +197,7 @@ for file in files:
 </code></pre>
 </p><p>
 
-The critical temperature found by this method for the same parameter as above (alpha=2) is 3.373, which is the same as by the other two methods.</p>
+The critical temperature found by this method for the same parameter as above (alpha=2) is 3.373, which is the same as by the other two methods! The machine learning model takes a lot less user input (no setting index cutoffs, etc.), but yields an identical result. </p>
 
 <h3>
 <a id="plotting" class="anchor" href="#designer-templates" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Plotting critical temperatures</h3>
