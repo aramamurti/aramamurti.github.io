@@ -35,7 +35,7 @@ i.e. <code>/Users/adith/Desktop/test_cases/coulomb/32/05/1/</code>, which then c
 <h2>
 <a id="running" class="anchor" href="#designer-templates" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Running analysis scripts</h2>
 
-<p> To run the analyses, we can write a fairly simple script. I will now run through an example of this. We begin by including the analysis scripts folder in the system path and importing the necessary libraries.</p>
+<p> To run the analyses, we can write a fairly simple script. The important thing to note is that all the analyses give the same final result (which is good). I will now run through an example of one analysis. We begin by including the analysis scripts folder in the system path and importing the necessary libraries.</p>
 <pre><code>import sys
 sys.path.append('/Users/adith/Documents/PIMC/analysis/')
 
@@ -129,7 +129,7 @@ for file in files: # for each set of different simulation parameters
 </p>
 
 <p>
-An example of the plot produced by this script is seen here. The points are the mu hats of the simulation at various temperatures for 32 particles, along with the fitted curve. Note that we fitted the points only above the critical temperature (this cutoff must be set  manually, as noted in the code above). The point where the lines intersect is the critical temperature. In this case, the critical temperature for the simulation (with alpha=2) was found to be 3.374, almost the same as found with the superfluid fraction calculation.
+An example of the plot produced by this script is seen here. The points are the mu hats of the simulation at various temperatures for 32 particles, along with the fitted curve. Note that we fitted the points only above the critical temperature (this cutoff must be set  manually, as noted in the code above). The point where the curve intersects the x-axis is the critical temperature. In this case, the critical temperature for the simulation (with alpha=2) was found to be 3.374, almost identical to the one found with the superfluid fraction calculation.
 <img src="m2.png", height=600,width=600>
 </p>
 
