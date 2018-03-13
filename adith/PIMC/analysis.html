@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Path-Integral Monte Carlo C++ Code: Analysis Overview</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">PIMC: Overview of Analysis Scripts</h1>
+      
+      <a href="www.ramamurti.com/PIMC/" class="btn"> Back to PIMC home </a>
+    </section>
+    <section class="main-content">
+<a id="introduction" class="anchor" href="#welcome-to-github-pages" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>
+
+<p>There are four Python scripts included along with the PIMC C++ code. The first is called <code>aggregate_data.py</code>, which takes the raw data output from the PIMC simulations and processes it for use by the other scripts. The rest of the scripts are used to find the critical temperature of the system, and implement three methods: calculation of the superfluid fraction, calculation of the permutation cycle probabilities, and a machine learning algorithm. The former two analysis methods are overviewed in Section II of <a href="http://inspirehep.net/record/1515205">this paper</a>. </p>
+
+
+<p>
+Before beginning to do any analysis, the default scripts require a certain folder structure. (This can, of course, be changed for your needs.) As explained on the <a href="www.ramamurti.com/adith/PIMC">home page</a>, your simulation will read parameters from an <code>input/</code> folder and write to an <code>output/</code> folder. The various trials should be organized as follows:
+<code>/path_to_trials/number_of_particles/interaction_parameters/trial_number/</code>,
+i.e. <code>/Users/adith/Desktop/test_cases/coulomb/32/05/1/</code>, which then contains the <code>input/</code> and <code>output/</code> folders for that trial (in my naming scheme, this corresponds to a Coulomb simulation with 32 particles, interaction strength 0.5, trial 1).
+</p>
+
+<h3>
+<a id="aggregate-data" class="anchor" href="#designer-templates" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Aggregating the data</h3>
+
+<p> In the directory that contains the various trials (<code>/Users/adith/Desktop/test_cases/coulomb/32/05/</code> in the example above), create a folder (e.g. <code>analysis/</code>). Then, run the <code>aggregate_data.py</code> script with arguments for the path to the directory (i.e. <q>/Users/adith/Desktop/test_cases/coulomb/32/05/</q>) and the output folder (i.e. <q>analysis/</q>). This will write out aggregated files for energy, free energy, permutation, and winding data.
+</p>
+
+<h2>
+<a id="running" class="anchor" href="#designer-templates" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Running analysis scripts</h2>
+
+<p> To run the analyses, we can write a fairly simple script. I will now run through an example script. We begin by including the scripts folder in the system path and importing the necessary libraries.</p>
+<pre><code>import sys
+sys.path.append('/Users/adith/Documents/PIMC/analysis/')
+
+import ml_analysis
+import pc_analysis
+import sf_analysis
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+</code></pre>
+
+<p> Next, set up the file paths.</p>
+<pre><code>prefix = '/Users/adith/Desktop/test_cases/coulomb/'
+files = ['05','1','2','5']
+postfix = '/analysis/'
+</code></pre>
+
+<h3>
+<a id="superfluid-fraction" class="anchor" href="#designer-templates" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Superfluid fraction method</h3>
+
+<p>
+<pre><code>tcs_sf = []
+num_particles = ['32/','16/','8/']
+for file in files:
+    wn_dfs = []
+    wn_df_stds = []
+    for num in num_particles:
+        wn_df,wn_df_std = sf_analysis.read_input(prefix + num + file + postfix)
+        wn_dfs.append(wn_df)
+        wn_df_stds.append(wn_df_std)
+
+    psps = []
+    psp_errs = []
+    spls = []
+    for num in range(len(num_particles)):
+        psp,pspe,spl = sf_analysis.calc_superfluid_frac(wn_dfs[num],wn_df_stds[num])
+        psps.append(psp)
+        psp_errs.append(pspe)
+        spls.append(spl)
+
+    sf_analysis.plot_psp(psps, psp_errs,spls)
+    tcs_sf.append(sf_analysis.find_interesect(psps, spls))
+</code></pre>
+</p>
+
+<h3>
+<a id="permutation-cycle" class="anchor" href="#designer-templates" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Permutation cycle method</h3>
+
+<p>
+<pre><code>tcs_pc = []
+for file in files:
+    (pc_df,pc_df_std) = pc_analysis.read_input(prefix + '32/' + file + postfix)
+    mu_hats = pc_analysis.find_mu_hats(pc_df, pc_df_std)
+    f, ax = plt.subplots()
+    ax.scatter(mu_hats[:,0],mu_hats[:,1])
+    plt.show()
+
+    tcs_pc.append(pc_analysis.fit_mu_hats(mu_hats))
+</code></pre>
+</p>
+
+<h3>
+<a id="machine-learning" class="anchor" href="#designer-templates" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Maching learning method</h3>
+
+<p>
+<pre><code>tc_free = 3.3125
+create = False
+if create == True:
+    ml_analysis.create_input('/Users/adith/Desktop/test_cases/free_bosons/32/',tc_free)
+    for file in files:
+        ml_analysis.create_test(prefix+file+'/')
+
+data = ml_analysis.preprocess_data('/Users/adith/Desktop/test_cases/free_bosons/32/',32,1)
+ml_analysis.visualize_correlations(data)
+
+ml_analysis.optimize_model_class(data)
+ml_analysis.optimize_model_regress(data,tc_free)
+models = ml_analysis.make_model(data,tc_free)
+dfs = [[] for model in models]
+crit_temps = [[] for model in models]
+offsets = [0.5, 1]
+for file in files:
+    print(file)
+    test = ml_analysis.preprocess_data(prefix + '32/' + file + '/',32,0)
+    for index, model in enumerate(models):
+        df = ml_analysis.predict_temperature(test,model, data.drop(['T/Tc','temperature'],axis=1).columns)
+        dfs[index].append([file, df])
+        crit_temps[index].append([file, ml_analysis.find_critical_temperature(df,offsets[index])])
+        
+int_dict = {'05':0.5, '1':1,'2':2,'5':5,'10':10,'20':20,'50':50,'100':100}
+
+for index, _ in enumerate(models):
+    ml_analysis.scatter_temperature(dfs[index],int_dict)
+    ml_analysis.scatter_tcs(crit_temps[index],int_dict)
+</code></pre>
+</p>
+<h3>
+<a id="support-or-contact" class="anchor" href="#support-or-contact" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Support or Contact</h3>
+
+<p>If you have trouble running this code, or have corrections or suggestions for improvement, please contact me at adith.ramamurti [at] stonybrook.edu and I’ll get back to you as soon as I can. Any input is welcome!</p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/aramamurti/PIMC">PIMC</a> is maintained by <a href="http://www.ramamurti.com/adith/">A. Ramamurti</a>.</span>
+
+        <span class="site-footer-credits">This page uses the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
