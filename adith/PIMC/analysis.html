@@ -57,10 +57,12 @@ postfix = '/analysis/'
 <h3>
 <a id="superfluid-fraction" class="anchor" href="#designer-templates" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Superfluid fraction method</h3>
 
-<p>
-<pre><code>tcs_sf = []
-num_particles = ['32/','16/','8/']
+<p> This is an example of how to run the superfluid fraction analysis. See S.II.A.1 of <a href="http://inspirehep.net/record/1515205">this paper</a> for physics details.
+<pre><code>tcs_sf = [] #empty array for the critical temperatures
+num_particles = ['32/','16/','8/'] #folders for different number of particles
 for file in files:
+
+    ## Read in the aggregated winding number data
     wn_dfs = []
     wn_df_stds = []
     for num in num_particles:
@@ -68,16 +70,22 @@ for file in files:
         wn_dfs.append(wn_df)
         wn_df_stds.append(wn_df_std)
 
+    ## Empty arrays for the superfluid fractions and splines
     psps = []
     psp_errs = []
     spls = []
+    
+    ## Calculate temperature dependence of superfluid fraction for each size of system
     for num in range(len(num_particles)):
         psp,pspe,spl = sf_analysis.calc_superfluid_frac(wn_dfs[num],wn_df_stds[num])
         psps.append(psp)
         psp_errs.append(pspe)
         spls.append(spl)
 
+    ## Plot the superfluid fraction, along with the splines
     sf_analysis.plot_psp(psps, psp_errs,spls)
+    
+    ## Find critical temperature through intersection of splines
     tcs_sf.append(sf_analysis.find_interesect(psps, spls))
 </code></pre>
 </p>
@@ -85,15 +93,20 @@ for file in files:
 <h3>
 <a id="permutation-cycle" class="anchor" href="#designer-templates" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Permutation cycle method</h3>
 
-<p>
-<pre><code>tcs_pc = []
+<p>This is an example of how to run the permutation cycle analysis. See S.II.A.2 of <a href="http://inspirehep.net/record/1515205">this paper</a> for physics details.
+<pre><code>tcs_pc = [] #empty array for critical temperature
 for file in files:
+
+    ## Read in input
     (pc_df,pc_df_std) = pc_analysis.read_input(prefix + '32/' + file + postfix)
+    
+    ## Find mu hats
     mu_hats = pc_analysis.find_mu_hats(pc_df, pc_df_std)
     f, ax = plt.subplots()
     ax.scatter(mu_hats[:,0],mu_hats[:,1])
     plt.show()
 
+    ## Fit the mu hat data to find critical temperatures
     tcs_pc.append(pc_analysis.fit_mu_hats(mu_hats))
 </code></pre>
 </p>
@@ -101,32 +114,47 @@ for file in files:
 <h3>
 <a id="machine-learning" class="anchor" href="#designer-templates" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Maching learning method</h3>
 
-<p>
+<p> For the machine learning analysis, we need a training dataset. For this example, we use a simulation of free bosons, which is not computationally taxing, and for which we know the exact critical temperature (T = 3.3125 from the Einstein formula for density = 1 and mass = 1). First we can create the input and test files (change flag to True).
 <pre><code>tc_free = 3.3125
 create = False
 if create == True:
     ml_analysis.create_input('/Users/adith/Desktop/test_cases/free_bosons/32/',tc_free)
     for file in files:
         ml_analysis.create_test(prefix+file+'/')
+</code></pre>
 
-data = ml_analysis.preprocess_data('/Users/adith/Desktop/test_cases/free_bosons/32/',32,1)
+Next, we can preprocess the training data and visualize correlations.
+
+<pre><code>data = ml_analysis.preprocess_data('/Users/adith/Desktop/test_cases/free_bosons/32/',32,1)
 ml_analysis.visualize_correlations(data)
+</code></pre>
 
-ml_analysis.optimize_model_class(data)
+These lines of code will run through sets of model parameters, from which we can choose the optimal parameters.
+
+<pre><code>ml_analysis.optimize_model_class(data)
 ml_analysis.optimize_model_regress(data,tc_free)
-models = ml_analysis.make_model(data,tc_free)
-dfs = [[] for model in models]
-crit_temps = [[] for model in models]
+</code></pre>
+
+We can then make the models,
+<pre><code>models = ml_analysis.make_model(data,tc_free)
+</code></pre>
+
+Then we use the models to predict the critical temperatures.
+
+<pre><code>dfs = [[] for model in models] # empty array for the predictions
+crit_temps = [[] for model in models] # empty array for the critical temperatures
 offsets = [0.5, 1]
 for file in files:
     print(file)
-    test = ml_analysis.preprocess_data(prefix + '32/' + file + '/',32,0)
+    test = ml_analysis.preprocess_data(prefix + '32/' + file + '/',32,0) # preprocess the data for predictions
     for index, model in enumerate(models):
         df = ml_analysis.predict_temperature(test,model, data.drop(['T/Tc','temperature'],axis=1).columns)
         dfs[index].append([file, df])
         crit_temps[index].append([file, ml_analysis.find_critical_temperature(df,offsets[index])])
-        
-int_dict = {'05':0.5, '1':1,'2':2,'5':5,'10':10,'20':20,'50':50,'100':100}
+</code></pre>
+
+We can then plot the results.
+<pre><code> int_dict = {'05':0.5, '1':1,'2':2,'5':5,'10':10,'20':20,'50':50,'100':100}
 
 for index, _ in enumerate(models):
     ml_analysis.scatter_temperature(dfs[index],int_dict)
