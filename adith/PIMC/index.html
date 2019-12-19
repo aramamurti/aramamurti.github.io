@@ -27,7 +27,7 @@
 <h3>
 <a id="compiling-and-running" class="anchor" href="#designer-templates" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Compiling and Running</h3>
 
-<p>It has dependencies on <a href="http://www.boost.org">boost</a>, <a href="https://www.gnu.org/software/gsl/">GNU Scientific Library (GSL)</a>, <a href="https://www.open-mpi.org">Open-MPI</a>, and <a href="https://www.openmp.org"> OpenMP</a>. I suggest using the most recent <a href="https://gcc.gnu.org">GNU C++ compiler</a> for best results, but any compiler that supports the C++14 standard will work. The makefile included in the git repository will compile and link the files into an executable called <code>PIMC</code>.</p>
+<p>It has dependencies on <a href="http://www.boost.org">boost</a>, <a href="https://www.gnu.org/software/gsl/">GNU Scientific Library (GSL)</a>, and <a href="https://www.open-mpi.org">Open-MPI</a>. I suggest using the most recent <a href="https://gcc.gnu.org">GNU C++ compiler</a>, as this is what I've used to test my code, but any compiler that supports the C++14 standard will work. The makefile included in the git repository will compile and link the files into an executable called <code>PIMC</code>.</p>
 
 <p>
 The working directory must have two folders: <code>input/</code> and <code>output/</code>. The <code>input</code> folder must have at least one parameters file, named as <code>parameters_#.cfg</code>, where <code>#</code> is an integer (starting at zero). Here is a sample configuration file:
