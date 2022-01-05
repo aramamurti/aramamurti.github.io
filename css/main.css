@@ -50,7 +50,7 @@ body {
 a,
 a:visited {
 	outline: none;
-	color: #08f5fb;
+	color: #ededed;
 	-moz-transition: all 0.3s ease-in-out;
 	-o-transition: all 0.3s ease-in-out;
 	-webkit-transition: all 0.3s ease-in-out;
@@ -239,7 +239,7 @@ mark {
 }
 
 hr {
-	border: solid #08f5fb;
+	border: solid #ededed;
 	border-width: 1px 0 0;
 	clear: both;
 	margin: 23px 0 12px;
@@ -265,7 +265,7 @@ dl {
 
 dt {
 	margin: 0;
-	color: #08f5fb;
+	color: #ededed;
 }
 
 dd {
@@ -512,8 +512,8 @@ main::after {
 }
 
 main h1 {
-	font: 38px/1.2em "montserrat-bold", sans-serif;
-	color: #08f5fb;
+	font: 30px/1.2em "montserrat-bold", sans-serif;
+	color: #ededed;
 	margin-bottom: 12px;
 	padding: 0;
 }
@@ -526,7 +526,7 @@ main p {
 }
 
 main hr {
-	border: solid #08f5fb;
+	border: solid #ededed;
 	border-width: 5px 0 0;
 	margin: 19px auto 12px;
 	height: 0;
