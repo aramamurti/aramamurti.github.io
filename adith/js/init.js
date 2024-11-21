@@ -5,6 +5,7 @@
 -----------------------------------------------------------------------------------*/
 
  jQuery(document).ready(function($) {
+     
 
 /*----------------------------------------------------*/
 /* FitText Settings
@@ -84,11 +85,11 @@
       var nav = $('#nav-wrap');
 
 	   if ( (y > h*.20) && (y < h) && ($(window).outerWidth() > 768 ) ) {
-	      nav.fadeOut('fast');
+	      nav.addClass('opaque').fadeOut('fast');
 	   }
       else {
          if (y < h*.20) {
-            nav.removeClass('opaque').fadeIn('fast');
+            nav.addClass('opaque').fadeIn('fast');
          }
          else {
             nav.addClass('opaque').fadeIn('fast');
